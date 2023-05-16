@@ -6,6 +6,8 @@ from bluetooth.service import Application, Service
 from bluetooth.characteristics.program_characteristic import ProgramCharacteristic
 from bluetooth.characteristics.expression_characteristic import ExpressionCharacteristic
 from bluetooth.characteristics.song_characteristic import SongCharacteristic
+from bluetooth.characteristics.songs_characteristic import SongsCharacteristic
+from bluetooth.characteristics.update_song_characteristic import UpdateSongCharacteristic
 
 from midi.midi_service import MidiService
 
@@ -25,6 +27,8 @@ class WhamMEService(Service):
         self.add_characteristic(ProgramCharacteristic(self, self.midi_service))
         self.add_characteristic(ExpressionCharacteristic(self, self.midi_service))
         self.add_characteristic(SongCharacteristic(self, self.midi_service))
+        self.add_characteristic(SongsCharacteristic(self))
+        self.add_characteristic(UpdateSongCharacteristic(self))
 
 MIDI_PORT='MIDI 1'
 midi_service = MidiService(MIDI_PORT)
@@ -39,4 +43,5 @@ adv.register()
 try:
     app.run()
 except KeyboardInterrupt:
+    midi_service.close_port()
     app.quit()

@@ -1,5 +1,5 @@
 import dbus
-from time import sleep
+import json
 from threading import Event, Thread
 
 from bluetooth.service import Characteristic
@@ -63,16 +63,31 @@ class SongCharacteristic(Characteristic):
 
     def WriteValue(self, value, options):
         str_value = '%s' % ''.join([str(v) for v in value])
-        str_value = str_value.replace('"', "")
-        print("Song set to: %s" % str_value)
+        song_id = str_value.replace('"', "")
+        if (song_id != ''):
+          print("Song set to: %s" % song_id)
+
         self.stop_playback_event.clear()
         if (self.current_song_thread is not None and self.current_song_thread.is_alive()):
             self.stop_playback_event.set()
             self.current_song_thread.join()
 
+        if (song_id == ''):
+            print('Stopped playback')
+            return
+
+        f = open('./data/songs.json')
+        songs = json.load(f)
+        f.close()
+        
+        if (songs[song_id] is None):
+            raise Exception('Song not found')
+
+        song = songs[song_id]
+
         self.current_song_thread = Thread(
             target=self.midi_service.play_midi_file, 
-            args=(self.stop_playback_event,)
+            args=(self.stop_playback_event, song['file_name'], song['bpm'])
         )
 
         self.current_song_thread.start()
