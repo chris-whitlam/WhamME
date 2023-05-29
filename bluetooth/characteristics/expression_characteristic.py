@@ -10,15 +10,16 @@ NOTIFY_TIMEOUT = 5000
 
 EXPRESSION_CHARACTERISTIC_UUID = "00000003-710e-4a5b-8d75-3e5b444bc3cf"
 
+
 class ExpressionCharacteristic(Characteristic):
     def __init__(self, service, midi_service: MidiService):
-        self.current_expression = 100
+        self.current_expression = 0
         self.notifying = False
         self.midi_service = midi_service
 
         Characteristic.__init__(
-                self, EXPRESSION_CHARACTERISTIC_UUID,
-                ["read", "write"], service)
+            self, EXPRESSION_CHARACTERISTIC_UUID, ["read", "write"], service
+        )
         self.add_descriptor(ExpressionDescriptor(self))
 
     def get_expression(self):
@@ -47,13 +48,12 @@ class ExpressionCharacteristic(Characteristic):
         self.add_timeout(NOTIFY_TIMEOUT, self.set_expression_callback)
 
     def WriteValue(self, value, options):
-        str_value = '%s' % ''.join([str(v) for v in value])
+        str_value = "%s" % "".join([str(v) for v in value])
         str_value = str_value.replace('"', "")
         print("Expression set to: %s" % str_value)
         int_value = int(str_value)
         self.midi_service.set_expression(int_value)
-        self.current_expression = str_value
-        
+        self.current_expression = int_value
 
     def StopNotify(self):
         self.notifying = False

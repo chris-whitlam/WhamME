@@ -27,18 +27,31 @@ class MidiService:
         if value < 0 or value > 127:
             raise ValueError("Expression value must be between 0 and 127")
 
-        msg = mido.Message("control_change", control=value)
+        msg = mido.Message("control_change", control=11, value=value)
         self.__send_message(msg)
 
     def play_midi_file(self, event: Event, file_name, bpm: int):
         file_path = "./data/" + file_name
         mid = mido.MidiFile(file_path)
 
+        self._countdown(bpm)
+
         for msg in self.play(mid, bpm):
             if event.is_set():
                 break
 
             self.__send_message(msg)
+
+    def _countdown(self, bpm: int):
+        length_of_beat = 60.0 / bpm
+        self.set_program(33)
+        sleep(length_of_beat)
+        self.set_program(32)
+        sleep(length_of_beat)
+        self.set_program(33)
+        sleep(length_of_beat)
+        self.set_program(32)
+        sleep(length_of_beat)
 
     def play(self, mid, bpm=120, meta_messages=False):
         start_time = time()
